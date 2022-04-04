@@ -1,6 +1,5 @@
 # bs4, selenium, requests
 import site_parser
-import time
 
 
 def main():
