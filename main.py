@@ -1,9 +1,76 @@
 # bs4, selenium, requests
 import site_parser
 import time
+from bot import *
+from constants import *
 
-HUI = 2
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
+from telegram.ext import (
+    Updater,
+    CommandHandler,
+    MessageHandler,
+    Filters,
+    ConversationHandler,
+    CallbackQueryHandler,
+    CallbackContext,
+)
 
+def main() -> None:
+    """Run the bot."""
+    # Create the Updater and pass it your bot's token.
+    updater = Updater("TOKEN")
+
+    # Get the dispatcher to register handlers
+    dispatcher = updater.dispatcher
+
+
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            SELECTING_ACTION: [
+                CallbackQueryHandler(car_restart_or_new, pattern='^' + str(FINDING_CAR) + '$'),
+                CallbackQueryHandler(find_cargo, pattern='^' + str(FINDING_CARGO) + '$'),
+            ], 
+            CAR_ADD_FIRST_PARAMS:[
+                MessageHandler(Filters.text & (~Filters.command), car_add_first_params), 
+                CallbackQueryHandler(car_cancel_param, pattern='^' + str(CANCEL_PARAM) + '$')
+
+            ], 
+
+            FINDING_CAR: [
+                CallbackQueryHandler(ask_update_text_param, pattern='^' + str(CAR_CITY_OUT) + '$'), 
+                CallbackQueryHandler(ask_update_text_param, pattern='^' + str(CAR_CITY_IN) + '$'), 
+                CallbackQueryHandler(ask_update_text_param, pattern='^' + str(CAR_DATE) + '$'),
+                CallbackQueryHandler(ask_update_text_param, pattern='^' + str(CAR_WEIGHT) + '$'), 
+                CallbackQueryHandler(ask_update_text_param, pattern='^' + str(CAR_VOLUME) + '$'), 
+                CallbackQueryHandler(car_start_search, pattern='^' + str(CAR_SEARCH) + '$')
+
+            ], 
+            TYPING: [
+                MessageHandler(Filters.text, save_text_param)
+            ]
+        },
+
+        fallbacks=[
+            CommandHandler('end', done),
+            ]
+    )
+
+    
+    dispatcher.add_handler(conv_handler)
+    #dispatcher.add_handler(CommandHandler('findcar', car_restart_or_new))
+    #dispatcher.add_handler(CommandHandler('findcargo', find_cargo))
+    #dispatcher.add_handler(CommandHandler('start', start))
+    # Start the Bot
+    updater.start_polling()
+
+    updater.idle()
+
+
+if __name__ == '__main__':
+    main()
+
+'''
 def main():
 
     # Example of AtiTruckParser usage
@@ -39,7 +106,7 @@ def main():
     #         print(parser.get_listing_data())
     #     # time.sleep(5)
     
-    del parser
+    del parser'''
 
 
 if __name__ == '__main__':
