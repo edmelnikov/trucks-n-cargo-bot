@@ -2,34 +2,43 @@
 import site_parser
 import time
 
+HUI = 2
+
 def main():
-    # parser = site_parser.Ati_truck_parser()
+
+    # Example of AtiTruckParser usage
+    parser = site_parser.AtiTruckParser(delay_time=3)
     #
-    # parser.make_new_query(city_from="Амстердам",
-    #                       city_to="Москва",
-    #                       weight_t=None,
-    #                       volume_m3=None,
-    #                       cargo_type=None
-    #                       )
-    # # parser.make_new_query()
-    # time.sleep(1)
-    # parser.load_next_page()
-    # time.sleep(5)
-    # del parser
+    print(parser.make_new_query(city_from="Санкт-Петербург",
+                                city_to="Москва",
+                                weight=25,
+                                volume=30,
+                                cargo_type=None
+                                ))
+    if parser.load_next_page():
+        print(parser.get_listing_data())
+
+    if parser.load_next_page():
+        print(parser.get_listing_data())
+
+    if parser.load_next_page():
+        print(parser.get_listing_data())
 
     # Example of AtiCargoParser usage
-    parser = site_parser.AtiCargoParser(delay_time=5)  # create an object
-    num_listings = parser.make_new_query(city_from="Москва", city_to="Нижний Новгород", max_weight=10)  # make a query
-    if num_listings > 0:  # if there are listings matching the query, get the data
-        print(parser.get_listing_data())  # get data from current page
-        if parser.load_next_page():  # load next page
-            print(parser.get_listing_data())  # get data from the next page
-        # and so on and so forth...
-        if parser.load_next_page():
-            print(parser.get_listing_data())
-        if parser.load_next_page():
-            print(parser.get_listing_data())
-        # time.sleep(5)
+    # parser = site_parser.AtiCargoParser(delay_time=5)  # create an object
+    # num_listings = parser.make_new_query(city_from="Омск", city_to="Нижний Новгород")  # make a query
+    # print(num_listings)
+    # if num_listings > 0:  # if there are listings matching the query, get the data
+    #     print(parser.get_listing_data())  # get data from current page
+    #     if parser.load_next_page():  # load next page
+    #         print(parser.get_listing_data())  # get data from the next page
+    #     # and so on and so forth...
+    #     if parser.load_next_page():
+    #         print(parser.get_listing_data())
+    #     if parser.load_next_page():
+    #         print(parser.get_listing_data())
+    #     # time.sleep(5)
+    
     del parser
 
 
