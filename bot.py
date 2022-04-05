@@ -1,6 +1,7 @@
 #https://docs-python.ru/packages/biblioteka-python-telegram-bot-python/
 
 from constants import *
+import site_parser
 from ast import Return
 import logging
 from pickle import TRUE
@@ -221,7 +222,7 @@ def find_car(update: Update, context: CallbackContext) -> str:
         InlineKeyboardButton(text='Тип кузова', callback_data=str(CAR_BODY))
         ], 
         [
-        InlineKeyboardButton(text='Запустить поиск', callback_data=str(CAR_VOLUME)), 
+        InlineKeyboardButton(text='Запустить поиск', callback_data=str(CAR_SEARCH)), 
         ]
     ]
     keyboard = InlineKeyboardMarkup(buttons)
@@ -245,7 +246,8 @@ def ask_update_text_param(update: Update, context: CallbackContext) -> str:
 def save_text_param(update: Update, context: CallbackContext) -> str:
     type_of_choice = context.user_data[CURRENT_CHOICE] 
     type_of_param = context.user_data[CURRENT_CHANGE] 
-    context.user_data[type_of_choice] = {}
+    if not context.user_data.get(type_of_choice):
+        context.user_data[type_of_choice] = {}
     context.user_data[type_of_choice][type_of_param] = update.message.text
 
 
@@ -256,7 +258,18 @@ def save_text_param(update: Update, context: CallbackContext) -> str:
         return find_cargo(update, context)
 
 def car_start_search(update: Update, context: CallbackContext) -> str:
-    pass
+    
+    update.callback_query.answer()
+    #update.callback_query.edit_message_text(text=text)
+    parser = site_parser.AtiTruckParser(delay_time=3)
+    print(parser.make_new_query(city_from = context.user_data[FINDING_CAR][CAR_CITY_OUT],
+                            city_to=context.user_data[FINDING_CAR][CAR_CITY_IN],
+                            weight=None,
+                            volume=None,
+                            cargo_type=None
+                            ))
+    if parser.load_next_page():
+        print(parser.get_listing_data())
 
 
 def find_cargo(update: Update, context: CallbackContext) -> str:
