@@ -66,13 +66,17 @@ def main() -> None:
 
     updater.idle()
 
-    parser = site_parser.AtiTruckParser(delay_time=3)
-    
-
-
+# for parser testing
+# def main2():
+#     parser = site_parser.AtiTruckParser(delay_time=5)
+#     print(parser.make_new_query(city_from='Москва', city_to='Санкт-Петербург'))
+#     if parser.load_next_page():
+#         print(parser.get_listing_data())
 
 if __name__ == '__main__':
     main()
+    # main2()
+
 
 '''
 def main():
