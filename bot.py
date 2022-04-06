@@ -1,6 +1,8 @@
 #https://docs-python.ru/packages/biblioteka-python-telegram-bot-python/
 
 from constants import *
+from pretty_prints import *
+import site_parser
 from ast import Return
 import logging
 from pickle import TRUE
@@ -26,57 +28,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-def car_pretty_ptint(dict):
-    text = ''
-    text += 'Город отправления: '
-    if dict.get(CAR_CITY_OUT):
-        text += dict[CAR_CITY_OUT]
-    else:
-        text += 'Не указано'
-
-    text += '\nГород назначения: '
-    if dict.get(CAR_CITY_IN):
-        text += dict[CAR_CITY_IN]
-    else:
-        text += 'Не указано'
-
-    text += '\nДата назначения: '
-    if dict.get(CAR_DATE):
-        text += dict[CAR_DATE]
-    else:
-        text += 'Не указано'
-
-    text += '\nВес: '
-    if dict.get(CAR_WEIGHT):
-        text += dict[CAR_WEIGHT]
-    else:
-        text += 'Не указано'    
-
-    text += '\nОбъем: '
-    if dict.get(CAR_VOLUME):
-        text += dict[CAR_VOLUME]
-    else:
-        text += 'Не указано'    
-
-    text += '\nТип кузова: '
-    if dict.get(CAR_BODY):
-        text += dict[CAR_BODY]
-    else:
-        text += 'Не указано'    
-
-    text += '\nВозможность торга: '
-    if dict.get(CAR_BARGAIN):
-        text += dict[CAR_BARGAIN]
-    else:
-        text += 'Не указано'    
-
-    text += '\nСортировать по: '
-    if dict.get(CAR_SORT):
-        text += dict[CAR_SORT]
-    else:
-        text += 'Не указано'    
-
-    return text
 
 def start(update: Update, context: CallbackContext) -> str:
 
@@ -203,7 +154,7 @@ def car_cancel_param(update: Update, context: CallbackContext) -> str:
 
 def find_car(update: Update, context: CallbackContext) -> str:
 
-    text = f'Параметры поиска машины: \n\n'
+    text = f'Параметры поиска машины:   \n'
     text_ = car_pretty_ptint(context.user_data[FINDING_CAR])
     text += text_
 
@@ -221,7 +172,7 @@ def find_car(update: Update, context: CallbackContext) -> str:
         InlineKeyboardButton(text='Тип кузова', callback_data=str(CAR_BODY))
         ], 
         [
-        InlineKeyboardButton(text='Запустить поиск', callback_data=str(CAR_VOLUME)), 
+        InlineKeyboardButton(text='Запустить поиск', callback_data=str(CAR_SEARCH)), 
         ]
     ]
     keyboard = InlineKeyboardMarkup(buttons)
@@ -245,7 +196,8 @@ def ask_update_text_param(update: Update, context: CallbackContext) -> str:
 def save_text_param(update: Update, context: CallbackContext) -> str:
     type_of_choice = context.user_data[CURRENT_CHOICE] 
     type_of_param = context.user_data[CURRENT_CHANGE] 
-    context.user_data[type_of_choice] = {}
+    if not context.user_data.get(type_of_choice):
+        context.user_data[type_of_choice] = {}
     context.user_data[type_of_choice][type_of_param] = update.message.text
 
 
@@ -256,7 +208,18 @@ def save_text_param(update: Update, context: CallbackContext) -> str:
         return find_cargo(update, context)
 
 def car_start_search(update: Update, context: CallbackContext) -> str:
-    pass
+    
+    update.callback_query.answer()
+    #update.callback_query.edit_message_text(text=text)
+    parser = site_parser.AtiTruckParser(delay_time=3)
+    print(parser.make_new_query(city_from = context.user_data[FINDING_CAR][CAR_CITY_OUT],
+                            city_to=context.user_data[FINDING_CAR][CAR_CITY_IN],
+                            weight=None,
+                            volume=None,
+                            cargo_type=None
+                            ))
+    if parser.load_next_page():
+        print(parser.get_listing_data())
 
 
 def find_cargo(update: Update, context: CallbackContext) -> str:

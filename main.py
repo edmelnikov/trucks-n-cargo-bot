@@ -3,7 +3,6 @@ import site_parser
 import time
 from bot import *
 from constants import *
-
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import (
     Updater,
@@ -18,10 +17,8 @@ from telegram.ext import (
 def main() -> None:
     """Run the bot."""
 
-    parser1 = site_parser.AtiTruckParser(delay_time=3)
-
     # Create the Updater and pass it your bot's token.
-    updater = Updater("TOKEN")
+    updater = Updater("Token")
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
