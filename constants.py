@@ -1,4 +1,4 @@
-(SELECTING_ACTION, FINDING_CARGO, FINDING_CAR) = ('выбор действия', 'поиск груза', 'поиск машины')
+(SELECTING_ACTION, FINDING_CARGO, FINDING_CAR) = ('SELECTED ACTION', 'поиск груза', 'поиск машины')
 (
     CAR_CITY_OUT, 
     CAR_CITY_IN, 
@@ -21,11 +21,18 @@
 
 (TYPING, CURRENT_CHOICE, CURRENT_CHANGE, RESTARTED_CAR, CAR_ADD_FIRST_PARAMS, CANCEL_PARAM) = (
     'typing', 
-    'current_choice', 
-    'current_change', 
-    'restarted_car', 
+    'CURRENT_SEARCH_CHOICE', 
+    'CURRENT_SEARCH_PARAM_CHANGE', 
+    'RESTARTED_CAR', 
     'car_add_first_params', 
     'не указано'
 )
-CAR_PARAM_COUNTER = 'car_param_counter'
-CAR_SEARCH = 'поиск машин'
+CAR_PARAM_COUNTER = 'CAR_PARAM_COUNTER'
+#CAR_SEARCH = 'CAR_SEARCH'
+CAR_SEARCH_RESULTS = 'CAR_SEARCH_RESULTS'
+
+
+DISPLAY_RESULTS = 'DISPLAY_RESULTS'
+LISTING_COUNTER = 'LISTING_COUNTER'
+NEXT = 'NEXT'
+PREV = 'PREV'
