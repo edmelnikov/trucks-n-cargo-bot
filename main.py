@@ -18,7 +18,7 @@ def main() -> None:
     """Run the bot."""
 
     # Create the Updater and pass it your bot's token.
-    updater = Updater("Token")
+    updater = Updater("5271615777:AAGH0_TAUSpXvUV9f8SNBbb26CJwYJ3ipZU")
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
@@ -26,6 +26,8 @@ def main() -> None:
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
+        allow_reentry= True ,
+
         states={
             SELECTING_ACTION: [
                 CallbackQueryHandler(car_restart_or_new, pattern='^' + str(FINDING_CAR) + '$'),
@@ -43,9 +45,17 @@ def main() -> None:
                 CallbackQueryHandler(ask_update_text_param, pattern='^' + str(CAR_DATE) + '$'),
                 CallbackQueryHandler(ask_update_text_param, pattern='^' + str(CAR_WEIGHT) + '$'), 
                 CallbackQueryHandler(ask_update_text_param, pattern='^' + str(CAR_VOLUME) + '$'), 
-                CallbackQueryHandler(car_start_search, pattern='^' + str(CAR_SEARCH) + '$')
+                CallbackQueryHandler(car_start_search, pattern='^' + str(CAR_SEARCH_RESULTS) + '$')
 
             ], 
+
+            DISPLAY_RESULTS: [
+                CallbackQueryHandler(display_next, pattern='^' + str(NEXT) + '$'),
+                CallbackQueryHandler(display_prev, pattern='^' + str(PREV) + '$'),
+                CallbackQueryHandler(find_car, pattern='^' + str(FINDING_CAR) + '$')
+
+            ], 
+
             TYPING: [
                 MessageHandler(Filters.text, save_text_param)
             ]

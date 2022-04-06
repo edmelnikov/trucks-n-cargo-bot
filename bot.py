@@ -47,8 +47,8 @@ def start(update: Update, context: CallbackContext) -> str:
     )
     update.message.reply_text(text=text, reply_markup=keyboard)
 
-
     return SELECTING_ACTION
+
 
 def car_restart_or_new(update: Update, context: CallbackContext) -> str:
 
@@ -83,7 +83,6 @@ def car_add_first_params(update: Update, context: CallbackContext) -> str:
         context.user_data[RESTARTED_CAR] = TRUE
         context.user_data[FINDING_CAR] = {}
         context.user_data[FINDING_CAR][CAR_CITY_OUT] = update.message.text
-        
         buttons = [
             [
             InlineKeyboardButton(text='Пропустить', callback_data=str(CANCEL_PARAM)), 
@@ -93,6 +92,7 @@ def car_add_first_params(update: Update, context: CallbackContext) -> str:
         text = 'Введите город назначения'
         update.message.reply_text(text=text, reply_markup=keyboard)
         context.user_data[CAR_PARAM_COUNTER] = 2
+
         return CAR_ADD_FIRST_PARAMS
 
 
@@ -104,7 +104,8 @@ def car_add_first_params(update: Update, context: CallbackContext) -> str:
         context.user_data[CAR_PARAM_COUNTER] = 3
 
         return CAR_ADD_FIRST_PARAMS
-    
+
+
     if context.user_data.get(CAR_PARAM_COUNTER) == 3: 
 
         context.user_data[FINDING_CAR][CAR_DATE] = update.message.text
@@ -130,13 +131,19 @@ def car_add_first_params(update: Update, context: CallbackContext) -> str:
         return CAR_ADD_FIRST_PARAMS
     
     if context.user_data.get(CAR_PARAM_COUNTER) == 5: 
+
         context.user_data[FINDING_CAR][CAR_DATE] = update.message.text
         text = f'Вы ввели все начальные параметры'
+        del context.user_data[CAR_PARAM_COUNTER]
         update.message.reply_text(text)
+
         return find_car(update, context)    
 
+
 def car_cancel_param(update: Update, context: CallbackContext) -> str:
+
     if context.user_data.get(CAR_PARAM_COUNTER) == 2:
+
         text = f'Укажите дату погрузки или диапазон дат через тире'
         update.callback_query.answer()
         update.callback_query.edit_message_text(text=text)
@@ -145,19 +152,21 @@ def car_cancel_param(update: Update, context: CallbackContext) -> str:
         return CAR_ADD_FIRST_PARAMS
 
     if context.user_data.get(CAR_PARAM_COUNTER) == 5:
+
         text = f'Вы ввели все начальные параметры'
+        del context.user_data[CAR_PARAM_COUNTER]
         update.callback_query.answer()
         update.callback_query.edit_message_text(text=text)
         #update.callback_query.message.reply_text('...')
+
         return find_car(update, context)
 
 
 def find_car(update: Update, context: CallbackContext) -> str:
 
-    text = f'Параметры поиска машины:   \n'
-    text_ = car_pretty_ptint(context.user_data[FINDING_CAR])
+    text = f'Параметры поиска машины:  \n\n'
+    text_,_ = car_pretty_ptint(context.user_data[FINDING_CAR])
     text += text_
-
     buttons = [
         [
         InlineKeyboardButton(text='Город отправления', callback_data=str(CAR_CITY_OUT)), 
@@ -172,7 +181,7 @@ def find_car(update: Update, context: CallbackContext) -> str:
         InlineKeyboardButton(text='Тип кузова', callback_data=str(CAR_BODY))
         ], 
         [
-        InlineKeyboardButton(text='Запустить поиск', callback_data=str(CAR_SEARCH)), 
+        InlineKeyboardButton(text='Запустить поиск', callback_data=str(CAR_SEARCH_RESULTS)), 
         ]
     ]
     keyboard = InlineKeyboardMarkup(buttons)
@@ -182,7 +191,9 @@ def find_car(update: Update, context: CallbackContext) -> str:
         update.callback_query.edit_message_text(text=text, reply_markup=keyboard)
     except AttributeError:
         update.message.reply_text(text=text, reply_markup=keyboard)
+
     return FINDING_CAR
+
 
 def ask_update_text_param(update: Update, context: CallbackContext) -> str:
 
@@ -193,13 +204,15 @@ def ask_update_text_param(update: Update, context: CallbackContext) -> str:
 
     return TYPING 
 
+
 def save_text_param(update: Update, context: CallbackContext) -> str:
+
     type_of_choice = context.user_data[CURRENT_CHOICE] 
     type_of_param = context.user_data[CURRENT_CHANGE] 
     if not context.user_data.get(type_of_choice):
         context.user_data[type_of_choice] = {}
     context.user_data[type_of_choice][type_of_param] = update.message.text
-
+    del context.user_data[CURRENT_CHANGE] 
 
     if type_of_choice == FINDING_CAR:
         return find_car(update, context)
@@ -207,19 +220,106 @@ def save_text_param(update: Update, context: CallbackContext) -> str:
     elif type_of_choice == FINDING_CARGO:
         return find_cargo(update, context)
 
+
 def car_start_search(update: Update, context: CallbackContext) -> str:
     
+    _, temp_dict_ = car_pretty_ptint(context.user_data[FINDING_CAR])
+    text = f'Поиск запущен ...'
     update.callback_query.answer()
-    #update.callback_query.edit_message_text(text=text)
+    update.callback_query.message.reply_text(text=text)
+    
     parser = site_parser.AtiTruckParser(delay_time=3)
-    print(parser.make_new_query(city_from = context.user_data[FINDING_CAR][CAR_CITY_OUT],
-                            city_to=context.user_data[FINDING_CAR][CAR_CITY_IN],
-                            weight=None,
-                            volume=None,
-                            cargo_type=None
-                            ))
-    if parser.load_next_page():
-        print(parser.get_listing_data())
+    size_query = parser.make_new_query(city_from = temp_dict_[CAR_CITY_OUT],
+                            city_to = temp_dict_[CAR_CITY_IN],
+                            weight = temp_dict_[CAR_WEIGHT],
+                            volume = temp_dict_[CAR_BODY],
+                            cargo_type = temp_dict_[CAR_BODY]
+                            )
+    
+    query = parser.get_listing_data()
+
+    context.user_data[CAR_SEARCH_RESULTS] = [query]
+    context.user_data[LISTING_COUNTER] = 0
+
+    return display_results(update, context)
+
+
+def display_prev(update: Update, context: CallbackContext) -> str:
+    context.user_data[LISTING_COUNTER] -= 1
+    return display_results(update, context)
+
+def display_next(update: Update, context: CallbackContext) -> str:
+    context.user_data[LISTING_COUNTER] += 1
+    return display_results(update, context)
+
+
+def display_results(update: Update, context: CallbackContext) -> str:
+
+    choice = context.user_data[CURRENT_CHOICE]
+    if choice == FINDING_CAR:
+
+        if context.user_data[LISTING_COUNTER] == 0:
+            list_num = context.user_data[LISTING_COUNTER]
+
+            buttons = [
+                [
+                InlineKeyboardButton(text='Вперед', callback_data=str(NEXT)), 
+                ], 
+                [
+                InlineKeyboardButton(text='Вернуться к меню поиска', callback_data=str(FINDING_CAR)), 
+                ], 
+            ]
+            keyboard = InlineKeyboardMarkup(buttons)
+            text = f'Результаты поиска \n\n'
+            text_ = display_pretty_print(context.user_data[CAR_SEARCH_RESULTS][0][list_num])
+            text += text_
+            text += f'\nстраница {list_num + 1}'
+            update.callback_query.message.reply_text(text=text, reply_markup=keyboard)
+
+            return DISPLAY_RESULTS
+
+        elif context.user_data[LISTING_COUNTER] !=0 and context.user_data[LISTING_COUNTER] != len(context.user_data[CAR_SEARCH_RESULTS][0]) - 1:
+            
+            list_num = context.user_data[LISTING_COUNTER]
+
+            buttons = [
+                [
+                InlineKeyboardButton(text='Назад', callback_data=str(PREV)), 
+                InlineKeyboardButton(text='Вперед', callback_data=str(NEXT))
+                ], 
+                [
+                InlineKeyboardButton(text='Вернуться к меню поиска', callback_data=str(FINDING_CAR)), 
+                ], 
+            ]
+            keyboard = InlineKeyboardMarkup(buttons)
+            text = f'Результаты поиска \n\n'
+            text_ = display_pretty_print(context.user_data[CAR_SEARCH_RESULTS][0][list_num])
+            text += text_
+            text += f'\nстраница {list_num + 1}'
+            update.callback_query.message.reply_text(text=text, reply_markup=keyboard)
+
+            return DISPLAY_RESULTS
+
+        else:      
+            list_num = context.user_data[LISTING_COUNTER]
+
+            buttons = [
+                [
+                InlineKeyboardButton(text='Назад', callback_data=str(PREV)), 
+                ], 
+                [
+                InlineKeyboardButton(text='Вернуться к меню поиска', callback_data=str(FINDING_CAR)), 
+                ], 
+            ]
+            keyboard = InlineKeyboardMarkup(buttons)
+            text = f'Результаты поиска \n\n'
+            text_ = display_pretty_print(context.user_data[CAR_SEARCH_RESULTS][0][list_num])
+            text += text_
+            text += f'\nстраница {list_num + 1}'
+            update.callback_query.message.reply_text(text=text, reply_markup=keyboard)
+
+            return DISPLAY_RESULTS
+
 
 
 def find_cargo(update: Update, context: CallbackContext) -> str:
@@ -240,4 +340,7 @@ def done(update: Update, context: CallbackContext) -> str:
     update.message.reply_text('Спасибо что воспользовались. Пока!')
     return ConversationHandler.END
 
-print(FINDING_CAR)
+def restart(update: Update, context: CallbackContext) -> str:
+    del context.user_data[CURRENT_CHOICE]
+
+
