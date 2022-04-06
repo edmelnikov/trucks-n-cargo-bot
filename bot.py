@@ -1,6 +1,7 @@
 #https://docs-python.ru/packages/biblioteka-python-telegram-bot-python/
 
 from constants import *
+from pretty_prints import *
 import site_parser
 from ast import Return
 import logging
@@ -27,57 +28,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-def car_pretty_ptint(dict):
-    text = ''
-    text += 'Город отправления: '
-    if dict.get(CAR_CITY_OUT):
-        text += dict[CAR_CITY_OUT]
-    else:
-        text += 'Не указано'
-
-    text += '\nГород назначения: '
-    if dict.get(CAR_CITY_IN):
-        text += dict[CAR_CITY_IN]
-    else:
-        text += 'Не указано'
-
-    text += '\nДата назначения: '
-    if dict.get(CAR_DATE):
-        text += dict[CAR_DATE]
-    else:
-        text += 'Не указано'
-
-    text += '\nВес: '
-    if dict.get(CAR_WEIGHT):
-        text += dict[CAR_WEIGHT]
-    else:
-        text += 'Не указано'    
-
-    text += '\nОбъем: '
-    if dict.get(CAR_VOLUME):
-        text += dict[CAR_VOLUME]
-    else:
-        text += 'Не указано'    
-
-    text += '\nТип кузова: '
-    if dict.get(CAR_BODY):
-        text += dict[CAR_BODY]
-    else:
-        text += 'Не указано'    
-
-    text += '\nВозможность торга: '
-    if dict.get(CAR_BARGAIN):
-        text += dict[CAR_BARGAIN]
-    else:
-        text += 'Не указано'    
-
-    text += '\nСортировать по: '
-    if dict.get(CAR_SORT):
-        text += dict[CAR_SORT]
-    else:
-        text += 'Не указано'    
-
-    return text
 
 def start(update: Update, context: CallbackContext) -> str:
 
@@ -204,7 +154,7 @@ def car_cancel_param(update: Update, context: CallbackContext) -> str:
 
 def find_car(update: Update, context: CallbackContext) -> str:
 
-    text = f'Параметры поиска машины: \n\n'
+    text = f'Параметры поиска машины:   \n'
     text_ = car_pretty_ptint(context.user_data[FINDING_CAR])
     text += text_
 
