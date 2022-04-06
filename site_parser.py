@@ -19,7 +19,8 @@ class AtiParser:
 
     def __init__(self, url, delay_time):
         self.delay_time = delay_time
-        self.driver = webdriver.Chrome()  # create Chrome browser driver
+        self.driver = webdriver.Chrome("chromedriver.exe")  # create Chrome browser driver
+        self.driver.maximize_window()
         self.driver.get(url)
 
     # Methods shared across all child classes #
@@ -48,12 +49,22 @@ class AtiParser:
         except TimeoutException:
             print("City dropdown was not found!")
 
-    def load_next(self, next_page_button_path):
+    # checks if listings have been loaded or not #
+    def check_listings_presence(self, listing_path):
         try:
-            presence_of_elem = EC.presence_of_element_located((By.XPATH, next_page_button_path))
-            WebDriverWait(self.driver, self.delay_time).until(presence_of_elem).click()  # click "next page" button
-            time.sleep(self.delay_time)  # a small delay to let the page update (temporary solution, has to be changed later)
+            # check if a div with listings is displayed
+            presence_of_elem = EC.presence_of_element_located((By.XPATH, listing_path))
+            WebDriverWait(self.driver, self.delay_time).until(presence_of_elem)
             return True
+        except TimeoutException:
+            print("Either no listings were found, or the page hasn't loaded")
+            return False
+
+    def load_next(self, next_page_button_path, div_listings_path):
+        try:
+            presence_of_elem = EC.element_to_be_clickable((By.XPATH, next_page_button_path))
+            WebDriverWait(self.driver, self.delay_time).until(presence_of_elem).click()  # click "next page" button
+            return self.check_listings_presence(div_listings_path)
         except TimeoutException:
             print("Next page button was not found!")
             return False
@@ -75,7 +86,7 @@ class AtiParser:
         self.driver.quit()
 
 
-# WIP, on hold #
+# #
 class AtiTruckParser(AtiParser):
     domain = 'https://trucks.ati.su/'
 
@@ -84,9 +95,10 @@ class AtiTruckParser(AtiParser):
     to_input_path = '//*[@id="root"]/div/div[1]/main/div[3]/div/div[1]/div[3]/div[1]/div[1]/div[2]/div/div/label/div/input'  # destinationn point field path
     weight_input_path = '//*[@id="root"]/div/div[1]/main/div[3]/div/div[1]/div[4]/div[2]/div/div[1]/label/input'  # lowest load capacity field path
     volume_input_path = '//*[@id="root"]/div/div[1]/main/div[3]/div/div[1]/div[5]/div[2]/div/div[1]/label/input'  # lowest volume field path
-    next_page_button_path = '//*[@id="root"]/div/div[1]/main/div[5]/div/div[5]/div[1]/div/span[last()]'
+    next_page_button_path = '//*[@id="root"]/div/div[1]/main/div[5]/div/div[2]/div/div[2]/div[2]/div/span[last()]/span'
     dropdown_from_first_path = '//*[@id="react-autowhatever-from--item-0"]'  # path of a first item in a dropdown list
     dropdown_to_first_path = '//*[@id="react-autowhatever-to--item-0"]'
+    div_listings_path = '//*[@id="root"]/div/div[1]/main/div[5]/div/div[4]/div[1]/table'  # listing data table path
 
     # Create Chrome driver open up the website #
     def __init__(self, delay_time=5):
@@ -103,7 +115,7 @@ class AtiTruckParser(AtiParser):
         self.total_listings_num = 0  # total number of listings found by a query
 
     # Make a new query satisfying the function parameters #
-    # Also record the total number of found listings and number of avaliable pages with listings #
+    # Also record the total number of found listings and number of available pages with listings #
     # Returns a number of available listings obtained by the query #
     def make_new_query(self, city_from=None, city_to=None, weight=None, volume=None, cargo_type=None):
 
@@ -146,48 +158,46 @@ class AtiTruckParser(AtiParser):
             return 0  # we can't progress any further, return 0 meaning that no listings were found
 
         # wait until the listings load
-        time.sleep(self.delay_time)
-        try:
-            presence_of_elem = EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/div/div[1]/main/div[5]/div/div[4]'))
-            WebDriverWait(self.driver, self.delay_time).until(presence_of_elem)
-        except TimeoutException:
-            print("Either no listings were found, or the page hasn't loaded")
+        if self.check_listings_presence(self.div_listings_path):
 
-        # parse the page with listings and find the total number of available listings
-        soup = BeautifulSoup(self.driver.page_source, "html.parser")  # get page source with all listings
-        total_listing_num_div = soup.find('div', {'data-qa': 'total-trucks-count'})  # div containing total number of listings
-        if total_listing_num_div is None:  # if no trucks have been found
-            self.total_listings_num = 0
-            # self.total_pages_num = 0
+            # parse the page with listings and find the total number of available listings
+            soup = BeautifulSoup(self.driver.page_source, "html.parser")  # get page source with all listings
+            total_listing_num_div = soup.find('div', {'data-qa': 'total-trucks-count'})  # div containing total number of listings
+            if total_listing_num_div is None:  # if no trucks have been found
+                self.total_listings_num = 0
+                # self.total_pages_num = 0
+            else:
+
+                self.total_listings_num = re.findall(r'\d+', total_listing_num_div.getText().replace(" ", ""))
+                self.total_listings_num = int(''.join(self.total_listings_num))  # in case there is a space between digits
         else:
-
-            self.total_listings_num = re.findall(r'\d+', total_listing_num_div.getText().replace(" ", ""))
-            self.total_listings_num = int(''.join(self.total_listings_num))  # in case there is a space between digits
+            self.total_listings_num = 0
 
         return self.total_listings_num
 
     # Get listing data in form of a dictionary from current page #
     def get_listing_data(self):
         # ISSUES:
-        # \u characters
+        # \u \n characters
 
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
         listing_divs = soup.find_all('div', {'class': 'sc-gIDmLj hbTsnE card'})  # find divs containing listings
 
-        listing_datum = {
-            'from_city': None,
-            'to_city': None,
-            'dates': None,
-            'weight': None,
-            'volume': None,
-            'transport_type': None,
-            'truck_info': None,
-            'link': None,
-        }
-
         listing_data = []
         if len(listing_divs) != 0:
             for listing_div in listing_divs:
+
+                listing_datum = {
+                    'from_city': None,
+                    'to_city': None,
+                    'dates': None,
+                    'weight': None,
+                    'volume': None,
+                    'transport_type': None,
+                    'truck_info': None,
+                    'link': None,
+                }
+
                 # Departure city
                 try:
                     listing_datum['from_city'] = listing_div.find('p', {'data-qa': 'loading-city'}).getText(
@@ -198,6 +208,8 @@ class AtiTruckParser(AtiParser):
                 # dates
                 try:
                     listing_datum['dates'] = listing_div.find('p', {'data-qa': 'loading-periodicity'}).getText(separator='').replace("\u2009", " ")
+                    listing_datum['dates'] = listing_datum['dates'].replace('\n', ' ')  # replace \n characters
+                    listing_datum['dates'] = re.sub(' +', ' ', listing_datum['dates'])  # remove multiple spaces
                 except AttributeError:
                     print("Dates were not found")
 
@@ -226,10 +238,11 @@ class AtiTruckParser(AtiParser):
                     print("Truck info was not found")
 
                 listing_data.append(listing_datum)
+                # print(listing_datum)
         return listing_data
 
     def load_next_page(self):
-        return self.load_next(self.next_page_button_path)
+        return self.load_next(self.next_page_button_path, self.div_listings_path)
 
 
 class AtiCargoParser(AtiParser):

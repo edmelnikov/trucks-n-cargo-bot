@@ -17,6 +17,9 @@ from telegram.ext import (
 
 def main() -> None:
     """Run the bot."""
+
+    parser1 = site_parser.AtiTruckParser(delay_time=3)
+
     # Create the Updater and pass it your bot's token.
     updater = Updater("TOKEN")
 
@@ -66,9 +69,17 @@ def main() -> None:
 
     updater.idle()
 
+# for parser testing
+# def main2():
+#     parser = site_parser.AtiTruckParser(delay_time=5)
+#     print(parser.make_new_query(city_from='Москва', city_to='Санкт-Петербург'))
+#     if parser.load_next_page():
+#         print(parser.get_listing_data())
 
 if __name__ == '__main__':
     main()
+    # main2()
+
 
 '''
 def main():
@@ -107,10 +118,3 @@ def main():
     #     # time.sleep(5)
     
     del parser'''
-
-
-if __name__ == '__main__':
-    main()
-
-
-
