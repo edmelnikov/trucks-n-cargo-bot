@@ -4,6 +4,7 @@ import urllib.request
 import time
 import re
 from lxml import etree
+from lxml import html
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -178,12 +179,11 @@ class AtiTruckParser(AtiParser):
 
     # Get listing data in form of a dictionary from current page #
     def get_listing_data(self):
-        # ISSUES:
-        # \u \n characters
 
-        soup = BeautifulSoup(self.driver.page_source, "html.parser")
-        listing_divs = soup.find_all('div', {'class': 'sc-kLwhqv sc-dtDOqo eiPqBi hupLWU'})  # find divs containing listings
-        # the class of the div changes from time to time?
+        # better way to find element's html code using xpath, should be implemented everywhere
+        container_html = self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div[1]/main/div[5]/div/div[4]').get_attribute('innerHTML')  # contains html of a table of all listings
+        soup = BeautifulSoup(container_html, "html.parser")
+        listing_divs = soup.find_all('div', recursive=False)
 
         listing_data = []
         if len(listing_divs) != 0:
