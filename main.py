@@ -18,7 +18,7 @@ def main() -> None:
     """Run the bot."""
 
     # Create the Updater and pass it your bot's token.
-    updater = Updater("5271615777:AAGH0_TAUSpXvUV9f8SNBbb26CJwYJ3ipZU")
+    updater = Updater("5271615777:AAGH0_TAUSpXvUV9f8SNBbb26CJwYJ3ipZU", workers = 1024)
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
@@ -63,7 +63,8 @@ def main() -> None:
 
         fallbacks=[
             CommandHandler('end', done),
-            ]
+            ],
+        run_async= True
     )
 
     

@@ -225,6 +225,7 @@ def car_start_search(update: Update, context: CallbackContext) -> str:
     
     _, temp_dict_ = car_pretty_ptint(context.user_data[FINDING_CAR])
     text = f'Поиск запущен ...'
+    
     update.callback_query.answer()
     update.callback_query.message.reply_text(text=text)
     
@@ -296,7 +297,8 @@ def display_results(update: Update, context: CallbackContext) -> str:
             text_ = display_pretty_print(context.user_data[CAR_SEARCH_RESULTS][0][list_num])
             text += text_
             text += f'\nстраница {list_num + 1}'
-            update.callback_query.message.reply_text(text=text, reply_markup=keyboard)
+            update.callback_query.answer()
+            update.callback_query.edit_message_text(text=text, reply_markup=keyboard)
 
             return DISPLAY_RESULTS
 
@@ -316,7 +318,7 @@ def display_results(update: Update, context: CallbackContext) -> str:
             text_ = display_pretty_print(context.user_data[CAR_SEARCH_RESULTS][0][list_num])
             text += text_
             text += f'\nстраница {list_num + 1}'
-            update.callback_query.message.reply_text(text=text, reply_markup=keyboard)
+            update.callback_query.edit_message_text(text=text, reply_markup=keyboard)
 
             return DISPLAY_RESULTS
 
