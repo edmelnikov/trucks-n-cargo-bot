@@ -55,6 +55,7 @@ class AtiParser:
             # check if a div with listings is displayed
             presence_of_elem = EC.presence_of_element_located((By.XPATH, listing_path))
             WebDriverWait(self.driver, self.delay_time).until(presence_of_elem)
+            # time.sleep(1)
             return True
         except TimeoutException:
             print("Either no listings were found, or the page hasn't loaded")
@@ -181,12 +182,12 @@ class AtiTruckParser(AtiParser):
         # \u \n characters
 
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
-        listing_divs = soup.find_all('div', {'class': 'sc-gIDmLj hbTsnE card'})  # find divs containing listings
+        listing_divs = soup.find_all('div', {'class': 'sc-kLwhqv sc-dtDOqo eiPqBi hupLWU'})  # find divs containing listings
+        # the class of the div changes from time to time?
 
         listing_data = []
         if len(listing_divs) != 0:
             for listing_div in listing_divs:
-
                 listing_datum = {
                     'from_city': None,
                     'to_city': None,
